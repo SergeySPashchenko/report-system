@@ -16,10 +16,12 @@ final class AuthController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create([
-            'name' => $request->validated('name'),
-            'email' => $request->validated('email'),
-            'password' => Hash::make($request->validated('password')),
+        /** @var array<string, string> $data */
+        $data = $request->validated();
+        $user = User::query()->create([
+            'name' => (string) $data['name'],
+            'email' => (string) $data['email'],
+            'password' => Hash::make((string) $data['password']),
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
@@ -32,9 +34,11 @@ final class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $user = User::where('email', $request->validated('email'))->first();
+        /** @var array<string, string> $data */
+        $data = $request->validated();
+        $user = User::query()->where('email', (string) $data['email'])->first();
 
-        if (! $user || ! Hash::check($request->validated('password'), $user->password)) {
+        if (! $user || ! Hash::check((string) $data['password'], (string) $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
