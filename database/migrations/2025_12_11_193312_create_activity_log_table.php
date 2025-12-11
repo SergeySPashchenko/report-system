@@ -1,14 +1,26 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
+declare(strict_types=1);
 
-class CreateActivityLogTable extends Migration
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::connection(config('activitylog.database_connection'))->create(config('activitylog.table_name'), function (Blueprint $table) {
+        $connection = config('activitylog.database_connection');
+        $tableName = config('activitylog.table_name');
+
+        if (! is_string($connection)) {
+            $connection = null;
+        }
+
+        if (! is_string($tableName)) {
+            $tableName = 'activity_log';
+        }
+        Schema::connection($connection)->create($tableName, function (Blueprint $table): void {
             $table->bigIncrements('id');
             $table->string('log_name')->nullable();
             $table->text('description');
@@ -20,8 +32,18 @@ class CreateActivityLogTable extends Migration
         });
     }
 
-    public function down()
+    public function down(): void
     {
-        Schema::connection(config('activitylog.database_connection'))->dropIfExists(config('activitylog.table_name'));
+        $connection = config('activitylog.database_connection');
+        $tableName = config('activitylog.table_name');
+
+        if (! is_string($connection)) {
+            $connection = null;
+        }
+
+        if (! is_string($tableName)) {
+            $tableName = 'activity_log';
+        }
+        Schema::connection($connection)->dropIfExists($tableName);
     }
-}
+};
