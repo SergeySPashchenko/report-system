@@ -31,6 +31,7 @@ final class User extends Authenticatable
         'name',
         'email',
         'password',
+        'username',
     ];
 
     /**
@@ -47,10 +48,12 @@ final class User extends Authenticatable
     {
         return SlugOptions::create()
             ->generateSlugsFrom('name')
-            ->saveSlugsTo('username');
+            ->saveSlugsTo('username')
+            ->slugsShouldBeNoLongerThan(50)
+            ->doNotGenerateSlugsOnUpdate(); // Slug не буде змінюватись при оновленні name
     }
 
-    public function getRouteKeyName()
+    public function getRouteKeyName(): string
     {
         return 'username';
     }

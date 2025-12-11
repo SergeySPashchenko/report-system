@@ -61,7 +61,6 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test",
             "@test:types",
             "@test:lint",
             "@php artisan test"

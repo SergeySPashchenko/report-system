@@ -57,7 +57,7 @@ jobs:
       # Cache Composer vendor/
       # ---------------------------
       - name: Cache Composer
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vendor
           key: composer-${{ hashFiles('composer.lock') }}
@@ -76,6 +76,30 @@ jobs:
         run: npm ci
 
       # ---------------------------
+      # Setup Laravel environment
+      # ---------------------------
+      - name: Copy .env
+        run: cp .env.example .env || cp .env.ci .env || echo "APP_KEY=" > .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Create database
+        run: |
+          php artisan config:clear
+          touch database/database.sqlite
+
+      - name: Run migrations
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: homestead
+          DB_USERNAME: root
+          DB_PASSWORD: secret
+
+      # ---------------------------
       # Wait for MySQL
       # ---------------------------
       - name: Wait for MySQL
@@ -87,11 +111,16 @@ jobs:
           done
 
       # ---------------------------
+      # Build frontend assets
+      # ---------------------------
+      - name: Build frontend
+        run: npm run build
+
+      # ---------------------------
       # Lint PHP (Pint + Rector)
       # ---------------------------
       - name: Run Pint (code style check)
-        run: |
-          composer exec pint -- --parallel --test --ansi
+        run: composer exec pint -- --parallel --test --ansi
 
       - name: Run Rector (dry-run)
         run: composer exec rector -- --dry-run --ansi
@@ -113,3 +142,10 @@ jobs:
       # ---------------------------
       - name: Run Tests
         run: php artisan test --ansi
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: homestead
+          DB_USERNAME: root
+          DB_PASSWORD: secret
