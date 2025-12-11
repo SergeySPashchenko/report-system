@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Models\User;
+
 final class UserPolicy
 {
     /**
@@ -11,6 +13,7 @@ final class UserPolicy
      */
     public function viewAny(): bool
     {
+        // Всі авторизовані користувачі можуть переглядати список
         return true;
     }
 
@@ -19,6 +22,7 @@ final class UserPolicy
      */
     public function view(): bool
     {
+        // Користувач може переглядати свій профіль або будь-який інший
         return true;
     }
 
@@ -27,38 +31,53 @@ final class UserPolicy
      */
     public function create(): bool
     {
+        // Тільки адміністратори можуть створювати користувачів
+        // return $user->isAdmin();
+        // АБО дозволити всім (для реєстрації)
         return true;
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(): bool
+    public function update(User $user, User $model): bool
     {
-        return true;
+        // Користувач може редагувати тільки свій профіль
+        // АБО адміністратор може редагувати будь-який профіль
+        return $user->id === $model->id;
+        // return $user->id === $model->id || $user->isAdmin();
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(): bool
+    public function delete(User $user, User $model): bool
     {
-        return true;
+        // Користувач не може видалити сам себе
+        // Тільки адміністратори можуть видаляти користувачів
+        return $user->id !== $model->id;
+        // return $user->id !== $model->id && $user->isAdmin();
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(): bool
+    public function restore(User $user, User $model): bool
     {
-        return true;
+        // Користувач може відновлювати видалених користувачів (крім себе)
+        // Тільки адміністратори можуть відновлювати користувачів
+        return $user->id !== $model->id;
+        // return $user->id !== $model->id && $user->isAdmin();
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(): bool
+    public function forceDelete(User $user, User $model): bool
     {
-        return true;
+        // Користувач може остаточно видаляти користувачів (крім себе)
+        // Тільки адміністратори можуть остаточно видаляти користувачів
+        return $user->id !== $model->id;
+        // return $user->id !== $model->id && $user->isAdmin();
     }
 }

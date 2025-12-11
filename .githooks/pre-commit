@@ -24,7 +24,7 @@ fi
 # Run tests only if files in tests/ changed
 if git diff --cached --name-only | grep -q "tests/"; then
   echo "Running Pest for changed tests..."
-  composer exec pest -- --stop-on-failure --ansi
+  composer exec pest -- --stop-on-failure
   RESULT_PEST=$?
   if [ $RESULT_PEST -ne 0 ]; then
     echo "Tests failed. Fix them before committing."

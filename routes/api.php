@@ -3,13 +3,44 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\AuthController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+// ============================================
+// Public Auth Routes (no authentication required)
+// Rate limited: 5 requests per minute per IP
+// ============================================
+Route::prefix('v1/auth')->middleware('throttle:auth')->name('auth.')->group(function (): void {
+    Route::post('register', [AuthController::class, 'register'])->name('register');
+    Route::post('login', [AuthController::class, 'login'])->name('login');
+});
 
-Route::middleware('auth:sanctum')->group(function (): void {
-    Route::get('/user', fn (Request $request) => $request->user());
-    Route::post('/logout', [AuthController::class, 'logout']);
+// ============================================
+// Protected Auth Routes (authentication required)
+// ============================================
+Route::prefix('v1/auth')->middleware(['auth:sanctum', EnsureUserIsActive::class])->name('auth.')->group(function (): void {
+    Route::get('me', [AuthController::class, 'me'])->name('me');
+    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('logout-all', [AuthController::class, 'logoutAll'])->name('logout-all');
+    Route::post('refresh', [AuthController::class, 'refresh'])->name('refresh');
+});
+
+// ============================================
+// Protected API Routes
+// Rate limited: 60 requests per minute for authenticated users
+// EnsureUserIsActive: Only verified and active users can access
+// ============================================
+Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsActive::class])->group(function (): void {
+    // Users API - statistics must be before apiResource to avoid route conflicts
+    Route::prefix('users')->name('users.')->group(function (): void {
+        Route::get('statistics', [UserController::class, 'statistics'])->name('statistics');
+        Route::post('{id}/restore', [UserController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [UserController::class, 'forceDelete'])->name('force-delete');
+    });
+
+    // Users API Resource
+    Route::apiResource('users', UserController::class)->parameters([
+        'users' => 'user:username',
+    ]);
 });

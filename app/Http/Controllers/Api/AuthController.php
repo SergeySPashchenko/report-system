@@ -4,58 +4,153 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\UserLoggedIn;
+use App\Events\UserLoggedOut;
+use App\Events\UserRegistered;
+use App\Events\UserTokenRefreshed;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\LoginRequest;
-use App\Http\Requests\Api\RegisterRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 final class AuthController extends Controller
 {
+    /**
+     * Register a new user.
+     */
     public function register(RegisterRequest $request): JsonResponse
     {
-        /** @var array<string, string> $data */
-        $data = $request->validated();
+        $validated = $request->validated();
+
+        /** @var array{name: string, email: string, password: string} $validated */
         $user = User::query()->create([
-            'name' => (string) $data['name'],
-            'email' => (string) $data['email'],
-            'password' => Hash::make((string) $data['password']),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
         ]);
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        event(new UserRegistered($user, $token));
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'message' => 'User registered successfully',
+            'user' => new UserResource($user),
+            'access_token' => $token,
+            'token_type' => 'Bearer',
         ], 201);
     }
 
+    /**
+     * Login user and create token.
+     */
     public function login(LoginRequest $request): JsonResponse
     {
-        /** @var array<string, string> $data */
-        $data = $request->validated();
-        $user = User::query()->where('email', (string) $data['email'])->first();
+        $validated = $request->validated();
 
-        if (! $user || ! Hash::check((string) $data['password'], (string) $user->password)) {
+        /** @var array{email: string, password: string} $validated */
+        $user = User::query()->where('email', $validated['email'])->first();
+
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        // Видалити старі токени (опціонально)
+        // $user->tokens()->delete();
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        event(new UserLoggedIn(
+            $user,
+            $token,
+            $request->ip() ?? '0.0.0.0',
+            $request->userAgent() ?? 'Unknown'
+        ));
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+            'message' => 'Login successful',
+            'user' => new UserResource($user),
+            'access_token' => $token,
+            'token_type' => 'Bearer',
         ]);
     }
 
-    public function logout(): JsonResponse
+    /**
+     * Get authenticated user.
+     */
+    public function me(Request $request): UserResource
     {
-        auth()->user()?->currentAccessToken()?->delete();
+        $user = $request->user();
 
-        return response()->json(['message' => 'Logged out successfully']);
+        assert($user instanceof User);
+
+        return new UserResource($user);
+    }
+
+    /**
+     * Logout user (revoke token).
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        assert($user instanceof User);
+
+        $user->currentAccessToken()->delete();
+
+        event(new UserLoggedOut($user, $request->ip() ?? '0.0.0.0'));
+
+        return response()->json([
+            'message' => 'Logged out successfully',
+        ]);
+    }
+
+    /**
+     * Logout from all devices (revoke all tokens).
+     */
+    public function logoutAll(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        assert($user instanceof User);
+
+        $user->tokens()->delete();
+
+        event(new UserLoggedOut($user, $request->ip() ?? '0.0.0.0'));
+
+        return response()->json([
+            'message' => 'Logged out from all devices successfully',
+        ]);
+    }
+
+    /**
+     * Refresh token (revoke current and create new).
+     */
+    public function refresh(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        assert($user instanceof User);
+
+        // Видалити поточний токен
+        $user->currentAccessToken()->delete();
+
+        // Створити новий токен
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        event(new UserTokenRefreshed($user, $token));
+
+        return response()->json([
+            'message' => 'Token refreshed successfully',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ]);
     }
 }
