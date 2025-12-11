@@ -1,0 +1,36 @@
+#!/bin/sh
+# Pre-commit hook: quick checks before committing
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+echo "Running Pint check..."
+composer exec pint -- --test --parallel --ansi
+RESULT_PINT=$?
+
+if [ $RESULT_PINT -ne 0 ]; then
+  echo "Pint reported issues. Run 'vendor/bin/pint' to fix them."
+  exit $RESULT_PINT
+fi
+
+echo "Running Rector dry-run..."
+composer exec rector -- --dry-run --ansi
+RESULT_RECTOR=$?
+
+if [ $RESULT_RECTOR -ne 0 ]; then
+  echo "Rector dry-run reported issues. Run 'vendor/bin/rector' to fix them."
+  exit $RESULT_RECTOR
+fi
+
+# Run tests only if files in tests/ changed
+if git diff --cached --name-only | grep -q "tests/"; then
+  echo "Running Pest for changed tests..."
+  composer exec pest -- --stop-on-failure --ansi
+  RESULT_PEST=$?
+  if [ $RESULT_PEST -ne 0 ]; then
+    echo "Tests failed. Fix them before committing."
+    exit $RESULT_PEST
+  fi
+fi
+
+echo "Pre-commit checks passed."
+exit 0

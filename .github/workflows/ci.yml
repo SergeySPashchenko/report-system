@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: homestead
+          MYSQL_ROOT_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # ---------------------------
+      # Checkout
+      # ---------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---------------------------
+      # PHP
+      # ---------------------------
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, intl
+          tools: composer:v2
+          coverage: none
+
+      # ---------------------------
+      # Node
+      # ---------------------------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ---------------------------
+      # Cache Composer vendor/
+      # ---------------------------
+      - name: Cache Composer
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      # ---------------------------
+      # Install Composer packages
+      # ---------------------------
+      - name: Install PHP dependencies
+        run: composer install --no-progress --prefer-dist --ansi
+
+      # ---------------------------
+      # Install Node dependencies
+      # ---------------------------
+      - name: Install Node dependencies
+        run: npm ci
+
+      # ---------------------------
+      # Wait for MySQL
+      # ---------------------------
+      - name: Wait for MySQL
+        run: |
+          for i in {1..20}; do
+            mysqladmin ping -h127.0.0.1 -uroot -psecret && break
+            echo "Waiting for MySQL..."
+            sleep 3
+          done
+
+      # ---------------------------
+      # Lint PHP (Pint + Rector)
+      # ---------------------------
+      - name: Run Pint (code style check)
+        run: |
+          composer exec pint -- --parallel --test --ansi
+
+      - name: Run Rector (dry-run)
+        run: composer exec rector -- --dry-run --ansi
+
+      # ---------------------------
+      # PHPStan (Types)
+      # ---------------------------
+      - name: PHPStan
+        run: composer run test:types --ansi
+
+      # ---------------------------
+      # Frontend linters
+      # ---------------------------
+      - name: NPM linters
+        run: npm run test:lint
+
+      # ---------------------------
+      # Pest tests (PHPUnit replacement)
+      # ---------------------------
+      - name: Run Tests
+        run: php artisan test --ansi

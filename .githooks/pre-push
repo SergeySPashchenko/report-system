@@ -1,0 +1,25 @@
+#!/bin/sh
+# Pre-push hook: run full lint & tests before pushing
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+echo "Running composer lint (Pint + Rector + NPM)..."
+composer run lint --ansi
+RESULT_LINT=$?
+
+if [ $RESULT_LINT -ne 0 ]; then
+  echo "Lint failed. Aborting push."
+  exit $RESULT_LINT
+fi
+
+echo "Running full test suite..."
+composer run test --ansi
+RESULT_TEST=$?
+
+if [ $RESULT_TEST -ne 0 ]; then
+  echo "Tests failed. Aborting push."
+  exit $RESULT_TEST
+fi
+
+echo "All pre-push checks passed. Proceeding with push."
+exit 0
