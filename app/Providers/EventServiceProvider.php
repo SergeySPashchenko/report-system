@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Events\UserCreated;
 use App\Events\UserLoggedIn;
 use App\Events\UserLoggedOut;
 use App\Events\UserRegistered;
 use App\Events\UserTokenRefreshed;
+use App\Listeners\AssignCompanyToUser;
 use App\Listeners\LogTokenRefresh;
 use App\Listeners\LogUserLogin;
 use App\Listeners\LogUserLogout;
@@ -27,6 +29,11 @@ final class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+        ],
+
+        // User Created
+        UserCreated::class => [
+            AssignCompanyToUser::class,
         ],
 
         // User Registration

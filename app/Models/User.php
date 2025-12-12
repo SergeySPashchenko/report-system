@@ -8,6 +8,9 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -19,8 +22,16 @@ use Spatie\Sluggable\SlugOptions;
 
 final class User extends Authenticatable
 {
+    use HasApiTokens;
+
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasSlug, HasUlids, LogsActivity, Notifiable, SoftDeletes;
+    use HasFactory;
+
+    use HasSlug;
+    use HasUlids;
+    use LogsActivity;
+    use Notifiable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -63,6 +74,63 @@ final class User extends Authenticatable
         return LogOptions::defaults()
             ->logAll()
             ->logOnlyDirty();
+    }
+
+    /**
+     * Get all of the accesses.
+     *
+     * @return HasMany<Access, $this>
+     */
+    public function accesses(): HasMany
+    {
+        return $this->hasMany(Access::class);
+    }
+
+    /**
+     * Get all companies the user has access to.
+     *
+     * @return BelongsToMany<Company, $this>
+     */
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Company::class,
+            'accesses',
+            'user_id',
+            'accessible_id'
+        )->where('accesses.accessible_type', Company::class)
+            ->whereNull('accesses.deleted_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the main company for the user.
+     */
+    public function company(): ?Company
+    {
+        /** @var Company|null $company */
+        $company = $this->companies()->where('name', 'Main')->first();
+
+        return $company;
+    }
+
+    /**
+     * Get team ID for the given model.
+     */
+    public function getTeamIdFor(Model $model): ?string
+    {
+        /** @var string $modelId */
+        $modelId = $model->getKey();
+
+        $access = $this->accesses()
+            ->where('accessible_type', $model::class)
+            ->where('accessible_id', $modelId)
+            ->first();
+
+        /** @var string|null $accessId */
+        $accessId = $access?->id;
+
+        return $accessId; // team_id
     }
 
     /**

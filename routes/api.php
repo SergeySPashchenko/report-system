@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -42,5 +43,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
     // Users API Resource
     Route::apiResource('users', UserController::class)->parameters([
         'users' => 'user:username',
+    ]);
+
+    // Companies API - statistics must be before apiResource to avoid route conflicts
+    Route::prefix('companies')->name('companies.')->group(function (): void {
+        Route::get('statistics', [CompanyController::class, 'statistics'])->name('statistics');
+        Route::post('{id}/restore', [CompanyController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [CompanyController::class, 'forceDelete'])->name('force-delete');
+    });
+
+    // Companies API Resource
+    Route::apiResource('companies', CompanyController::class)->parameters([
+        'companies' => 'company:slug',
     ]);
 });

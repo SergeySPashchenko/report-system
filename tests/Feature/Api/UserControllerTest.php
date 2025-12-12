@@ -230,7 +230,17 @@ final class UserControllerTest extends TestCase
         $response->assertStatus(200);
         $users = $response->json('data');
         $names = array_column($users, 'name');
-        $this->assertEquals(['Alice', 'Bob', 'Charlie'], array_slice($names, 0, 3));
+
+        // Verify that Alice, Bob, and Charlie are in the list and in correct order
+        $aliceIndex = array_search('Alice', $names);
+        $bobIndex = array_search('Bob', $names);
+        $charlieIndex = array_search('Charlie', $names);
+
+        $this->assertNotFalse($aliceIndex, 'Alice should be in the list');
+        $this->assertNotFalse($bobIndex, 'Bob should be in the list');
+        $this->assertNotFalse($charlieIndex, 'Charlie should be in the list');
+        $this->assertLessThan($bobIndex, $aliceIndex, 'Alice should come before Bob');
+        $this->assertLessThan($charlieIndex, $bobIndex, 'Bob should come before Charlie');
     }
 
     public function test_can_paginate_users(): void

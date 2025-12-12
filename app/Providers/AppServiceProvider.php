@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Access;
+use App\Models\Company;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Observers\UserObserver;
@@ -32,6 +34,8 @@ final class AppServiceProvider extends ServiceProvider
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
         Relation::enforceMorphMap([
             'user' => User::class,
+            'company' => Company::class,
+            'access' => Access::class,
         ]);
         User::observe(UserObserver::class);
 
