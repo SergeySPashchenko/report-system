@@ -66,6 +66,20 @@ return [
             ]) : [],
         ],
 
+        'mysql_external' => [
+            'driver' => 'mysql',
+            'host' => env('SS_HOST', '127.0.0.1'),
+            'port' => env('SS_PORT', 3306),
+            'database' => env('SS_DATABASE', 'forge'),
+            'username' => env('SS_USERNAME', 'forge'),
+            'password' => env('SS_PASSWORD', ''),
+            'unix_socket' => env('SS_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

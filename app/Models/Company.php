@@ -59,12 +59,13 @@ final class Company extends Model
      */
     public function users(): BelongsToMany
     {
+        // Використовуємо ключ 'company' з морф-мапи (визначено в AppServiceProvider)
         return $this->belongsToMany(
             User::class,
             'accesses',
             'accessible_id',
             'user_id'
-        )->where('accesses.accessible_type', self::class)
+        )->where('accesses.accessible_type', 'company')
             ->whereNull('accesses.deleted_at')
             ->withTimestamps();
     }

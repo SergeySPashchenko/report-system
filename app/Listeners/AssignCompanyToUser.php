@@ -36,10 +36,11 @@ final class AssignCompanyToUser
         }
 
         // Створюємо доступ для користувача до компанії
+        // Використовуємо ключ 'company' з морф-мапи (визначено в AppServiceProvider)
         Access::query()->create([
             'user_id' => $user->id,
             'accessible_id' => $mainCompany->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
 
         Log::info('Company access assigned to user', [

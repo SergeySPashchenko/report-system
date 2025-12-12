@@ -29,7 +29,7 @@ final class CompanyControllerTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $this->company->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
     }
 
@@ -140,7 +140,7 @@ final class CompanyControllerTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $mainCompany->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
@@ -217,7 +217,7 @@ final class CompanyControllerTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $deletedCompany->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
 
         $deletedCompany->delete();
@@ -241,7 +241,7 @@ final class CompanyControllerTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $companyToDelete->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
 
         $companyId = $companyToDelete->id;
@@ -263,7 +263,7 @@ final class CompanyControllerTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $mainCompany->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')

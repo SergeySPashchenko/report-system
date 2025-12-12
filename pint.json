@@ -3,6 +3,7 @@
      "notPath": [
          "tests/TestCase.php",
          "app/Models/PersonalAccessToken.php",
+         "app/Models/SecureSeller/",
          "tmp"
      ],
      "rules": {

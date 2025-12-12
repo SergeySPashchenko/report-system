@@ -93,12 +93,13 @@ final class User extends Authenticatable
      */
     public function companies(): BelongsToMany
     {
+        // Використовуємо ключ 'company' з морф-мапи (визначено в AppServiceProvider)
         return $this->belongsToMany(
             Company::class,
             'accesses',
             'user_id',
             'accessible_id'
-        )->where('accesses.accessible_type', Company::class)
+        )->where('accesses.accessible_type', 'company')
             ->whereNull('accesses.deleted_at')
             ->withTimestamps();
     }
@@ -122,8 +123,16 @@ final class User extends Authenticatable
         /** @var string $modelId */
         $modelId = $model->getKey();
 
+        // Визначаємо ключ з морф-мапи на основі класу моделі
+        $modelMorphKey = match ($model::class) {
+            Company::class => 'company',
+            self::class => 'user',
+            Access::class => 'access',
+            default => $model::class,
+        };
+
         $access = $this->accesses()
-            ->where('accessible_type', $model::class)
+            ->where('accessible_type', $modelMorphKey)
             ->where('accessible_id', $modelId)
             ->first();
 

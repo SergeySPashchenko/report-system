@@ -39,6 +39,7 @@ return RectorConfig::configure()
         __DIR__.'/tests',
     ])
     ->withSkip([
+        __DIR__.'/app/Models/SecureSeller/',
     ])
     ->withPreparedSets(
         deadCode: true,

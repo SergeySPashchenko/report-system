@@ -66,9 +66,10 @@ final class CompanyPolicy
     {
         // Користувач може відновлювати видалені компанії до яких має доступ
         // Перевіряємо через Access напряму, бо видалені компанії не повертаються через relationship
+        // Використовуємо ключ 'company' з морф-мапи (визначено в AppServiceProvider)
         return $user->accesses()
             ->where('accessible_id', $company->id)
-            ->where('accessible_type', Company::class)
+            ->where('accessible_type', 'company')
             ->exists();
     }
 

@@ -21,10 +21,11 @@ final class AccessFactory extends Factory
      */
     public function definition(): array
     {
+        // Використовуємо ключ 'company' з морф-мапи (визначено в AppServiceProvider)
         return [
             'user_id' => User::factory(),
             'accessible_id' => Company::factory(),
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ];
     }
 }

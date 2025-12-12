@@ -28,7 +28,7 @@ final class CompanyPolicyTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $this->company->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
     }
 
@@ -78,7 +78,7 @@ final class CompanyPolicyTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $mainCompany->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
 
         expect($this->user->can('delete', $mainCompany))->toBeFalse();
@@ -115,7 +115,7 @@ final class CompanyPolicyTest extends TestCase
         Access::factory()->create([
             'user_id' => $this->user->id,
             'accessible_id' => $mainCompany->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
 
         expect($this->user->can('forceDelete', $mainCompany))->toBeFalse();

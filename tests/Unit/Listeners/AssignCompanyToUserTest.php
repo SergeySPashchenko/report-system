@@ -39,7 +39,7 @@ final class AssignCompanyToUserTest extends TestCase
         $this->assertDatabaseHas('accesses', [
             'user_id' => $user->id,
             'accessible_id' => $mainCompany->id,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
     }
 
@@ -65,7 +65,7 @@ final class AssignCompanyToUserTest extends TestCase
         $this->assertDatabaseHas('accesses', [
             'user_id' => $secondUser->id,
             'accessible_id' => $mainCompanyId,
-            'accessible_type' => Company::class,
+            'accessible_type' => 'company',
         ]);
     }
 
@@ -80,7 +80,7 @@ final class AssignCompanyToUserTest extends TestCase
         $access = Access::query()
             ->where('user_id', $user->id)
             ->where('accessible_id', $mainCompany->id)
-            ->where('accessible_type', Company::class)
+            ->where('accessible_type', 'company')
             ->first();
 
         expect($access)->not->toBeNull();
@@ -107,25 +107,25 @@ final class AssignCompanyToUserTest extends TestCase
         expect(Access::query()
             ->where('user_id', $user1->id)
             ->where('accessible_id', $mainCompany->id)
-            ->where('accessible_type', Company::class)
+            ->where('accessible_type', 'company')
             ->exists())->toBeTrue();
 
         expect(Access::query()
             ->where('user_id', $user2->id)
             ->where('accessible_id', $mainCompany->id)
-            ->where('accessible_type', Company::class)
+            ->where('accessible_type', 'company')
             ->exists())->toBeTrue();
 
         expect(Access::query()
             ->where('user_id', $user3->id)
             ->where('accessible_id', $mainCompany->id)
-            ->where('accessible_type', Company::class)
+            ->where('accessible_type', 'company')
             ->exists())->toBeTrue();
 
         // Verify all users share the same Main company
         $accessCount = Access::query()
             ->where('accessible_id', $mainCompany->id)
-            ->where('accessible_type', Company::class)
+            ->where('accessible_type', 'company')
             ->distinct('user_id')
             ->count('user_id');
 
