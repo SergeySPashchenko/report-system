@@ -6,9 +6,12 @@ namespace App\Policies;
 
 use App\Models\Brand;
 use App\Models\User;
+use App\Policies\Concerns\HasAccessCheck;
 
 final class BrandPolicy
 {
+    use HasAccessCheck;
+
     /**
      * Determine whether the user can view any models.
      */
@@ -41,8 +44,9 @@ final class BrandPolicy
      */
     public function update(User $user, Brand $brand): bool
     {
-        // Користувач може редагувати бренди до яких має доступ
-        return $user->brands()->where('brands.id', $brand->id)->exists();
+        // Користувач компанії має доступ до всього
+        // Користувач з доступами по брендам має доступ до всього по брендах
+        return $this->hasBrandAccess($user, $brand);
     }
 
     /**
@@ -50,8 +54,9 @@ final class BrandPolicy
      */
     public function delete(User $user, Brand $brand): bool
     {
-        // Користувач може видаляти бренди до яких має доступ
-        return $user->brands()->where('brands.id', $brand->id)->exists();
+        // Користувач компанії має доступ до всього
+        // Користувач з доступами по брендам має доступ до всього по брендах
+        return $this->hasBrandAccess($user, $brand);
     }
 
     /**
@@ -59,7 +64,13 @@ final class BrandPolicy
      */
     public function restore(User $user, Brand $brand): bool
     {
-        // Користувач може відновлювати видалені бренди до яких має доступ
+        // Користувач компанії має доступ до всього
+        // Користувач з доступами по брендам має доступ до всього по брендах
+        if ($this->hasCompanyAccess($user)) {
+            return true;
+        }
+
+        // Перевіряємо через Access напряму, бо видалені бренди не повертаються через relationship
         return $user->accesses()
             ->where('accessible_id', $brand->id)
             ->where('accessible_type', 'brand')
@@ -71,7 +82,8 @@ final class BrandPolicy
      */
     public function forceDelete(User $user, Brand $brand): bool
     {
-        // Користувач може остаточно видаляти бренди до яких має доступ
-        return $user->brands()->where('brands.id', $brand->id)->exists();
+        // Користувач компанії має доступ до всього
+        // Користувач з доступами по брендам має доступ до всього по брендах
+        return $this->hasBrandAccess($user, $brand);
     }
 }

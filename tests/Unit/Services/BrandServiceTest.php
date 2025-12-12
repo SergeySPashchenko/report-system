@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Models\Brand;
+use App\Models\User;
 use App\Queries\BrandQuery;
 use App\Services\BrandService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -19,19 +20,22 @@ final class BrandServiceTest extends TestCase
 
     private BrandQuery $brandQuery;
 
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->brandQuery = new BrandQuery();
         $this->brandService = new BrandService($this->brandQuery);
+        $this->user = User::factory()->create();
     }
 
     public function test_can_get_paginated_brands(): void
     {
         Brand::factory()->count(20)->create();
 
-        $result = $this->brandService->getPaginatedBrands();
+        $result = $this->brandService->getPaginatedBrands($this->user);
 
         expect($result)->toBeInstanceOf(LengthAwarePaginator::class)
             ->and($result->count())->toBeGreaterThan(0)
@@ -43,7 +47,7 @@ final class BrandServiceTest extends TestCase
         Brand::factory()->create(['name' => 'Tech Brand', 'slug' => 'tech-brand']);
         Brand::factory()->create(['name' => 'Fashion Brand', 'slug' => 'fashion-brand']);
 
-        $result = $this->brandService->getPaginatedBrands(search: 'Tech');
+        $result = $this->brandService->getPaginatedBrands($this->user, search: 'Tech');
 
         expect($result->count())->toBe(1)
             ->and($result->first()->name)->toBe('Tech Brand');
@@ -55,7 +59,7 @@ final class BrandServiceTest extends TestCase
         Brand::factory()->create(['name' => 'Alpha']);
         Brand::factory()->create(['name' => 'Beta']);
 
-        $result = $this->brandService->getPaginatedBrands(sortBy: 'name', sortDirection: 'asc');
+        $result = $this->brandService->getPaginatedBrands($this->user, sortBy: 'name', sortDirection: 'asc');
 
         $names = $result->pluck('name')->toArray();
         expect($names)->toContain('Alpha', 'Beta', 'Charlie');
@@ -157,7 +161,7 @@ final class BrandServiceTest extends TestCase
         $deleted = Brand::factory()->create();
         $deleted->delete();
 
-        $stats = $this->brandService->getStatistics();
+        $stats = $this->brandService->getStatistics($this->user);
 
         expect($stats)->toBeArray()
             ->and($stats)->toHaveKeys(['total', 'deleted', 'created_today', 'created_this_week', 'created_this_month'])

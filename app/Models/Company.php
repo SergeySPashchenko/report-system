@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Database\Factories\CompanyFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,5 +69,18 @@ final class Company extends Model
         )->where('accesses.accessible_type', 'company')
             ->whereNull('accesses.deleted_at')
             ->withTimestamps();
+    }
+
+    /**
+     * Get all products accessible to company users.
+     * Note: Company users have access to all products, so this returns a query builder for all products.
+     * Use this method when you need to query products for company users.
+     *
+     * @return Builder<Product>
+     */
+    public function products()
+    {
+        // Користувачі компанії мають доступ до всіх продуктів
+        return Product::query();
     }
 }

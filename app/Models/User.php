@@ -134,6 +134,28 @@ final class User extends Authenticatable
     }
 
     /**
+     * Get all products the user has direct access to (through Access model).
+     *
+     * Note: This returns only products with direct access.
+     * Company users have access to all products (check via company() method).
+     * Brand users have access to all products of their brands (check via brands() method).
+     *
+     * @return BelongsToMany<Product, $this>
+     */
+    public function products(): BelongsToMany
+    {
+        // Використовуємо ключ 'product' з морф-мапи (визначено в AppServiceProvider)
+        return $this->belongsToMany(
+            Product::class,
+            'accesses',
+            'user_id',
+            'accessible_id'
+        )->where('accesses.accessible_type', 'product')
+            ->whereNull('accesses.deleted_at')
+            ->withTimestamps();
+    }
+
+    /**
      * Get team ID for the given model.
      */
     public function getTeamIdFor(Model $model): ?string
@@ -145,6 +167,7 @@ final class User extends Authenticatable
         $modelMorphKey = match ($model::class) {
             Company::class => 'company',
             Brand::class => 'brand',
+            Product::class => 'product',
             self::class => 'user',
             Access::class => 'access',
             default => $model::class,

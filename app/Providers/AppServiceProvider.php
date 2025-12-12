@@ -8,6 +8,7 @@ use App\Models\Access;
 use App\Models\Brand;
 use App\Models\Company;
 use App\Models\PersonalAccessToken;
+use App\Models\Product;
 use App\Models\User;
 use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -37,6 +38,7 @@ final class AppServiceProvider extends ServiceProvider
             'user' => User::class,
             'company' => Company::class,
             'brand' => Brand::class,
+            'product' => Product::class,
             'access' => Access::class,
         ]);
         User::observe(UserObserver::class);

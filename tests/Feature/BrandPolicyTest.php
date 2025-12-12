@@ -55,8 +55,12 @@ final class BrandPolicyTest extends TestCase
     public function test_user_cannot_update_brand_without_access(): void
     {
         $otherBrand = Brand::factory()->create();
+        $userWithoutAccess = User::factory()->create();
 
-        expect($this->user->can('update', $otherBrand))->toBeFalse();
+        // Видаляємо доступ до компанії для користувача
+        $userWithoutAccess->accesses()->where('accessible_type', 'company')->delete();
+
+        expect($userWithoutAccess->can('update', $otherBrand))->toBeFalse();
     }
 
     public function test_user_can_delete_brand_with_access(): void
@@ -67,8 +71,12 @@ final class BrandPolicyTest extends TestCase
     public function test_user_cannot_delete_brand_without_access(): void
     {
         $otherBrand = Brand::factory()->create();
+        $userWithoutAccess = User::factory()->create();
 
-        expect($this->user->can('delete', $otherBrand))->toBeFalse();
+        // Видаляємо доступ до компанії для користувача
+        $userWithoutAccess->accesses()->where('accessible_type', 'company')->delete();
+
+        expect($userWithoutAccess->can('delete', $otherBrand))->toBeFalse();
     }
 
     public function test_user_can_restore_brand_with_access(): void
@@ -79,8 +87,12 @@ final class BrandPolicyTest extends TestCase
     public function test_user_cannot_restore_brand_without_access(): void
     {
         $otherBrand = Brand::factory()->create();
+        $userWithoutAccess = User::factory()->create();
 
-        expect($this->user->can('restore', $otherBrand))->toBeFalse();
+        // Видаляємо доступ до компанії для користувача
+        $userWithoutAccess->accesses()->where('accessible_type', 'company')->delete();
+
+        expect($userWithoutAccess->can('restore', $otherBrand))->toBeFalse();
     }
 
     public function test_user_can_force_delete_brand_with_access(): void
@@ -91,7 +103,11 @@ final class BrandPolicyTest extends TestCase
     public function test_user_cannot_force_delete_brand_without_access(): void
     {
         $otherBrand = Brand::factory()->create();
+        $userWithoutAccess = User::factory()->create();
 
-        expect($this->user->can('forceDelete', $otherBrand))->toBeFalse();
+        // Видаляємо доступ до компанії для користувача
+        $userWithoutAccess->accesses()->where('accessible_type', 'company')->delete();
+
+        expect($userWithoutAccess->can('forceDelete', $otherBrand))->toBeFalse();
     }
 }

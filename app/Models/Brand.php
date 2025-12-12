@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Sluggable\HasSlug;
@@ -70,5 +71,16 @@ final class Brand extends Model
         )->where('accesses.accessible_type', 'brand')
             ->whereNull('accesses.deleted_at')
             ->withTimestamps();
+    }
+
+    /**
+     * Get all products for this brand.
+     * Note: Products are filtered by user access when queried through services/queries.
+     *
+     * @return HasMany<Product, $this>
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'brand_id', 'id');
     }
 }

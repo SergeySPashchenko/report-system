@@ -44,6 +44,9 @@ final class Access extends Model
     /**
      * Get the parent accessible model (polymorphic).
      *
+     * Supported types: 'company', 'brand', 'product', 'user', 'access'
+     * Types are mapped in AppServiceProvider morph map.
+     *
      * @return MorphTo<Model, $this>
      */
     public function accessable(): MorphTo

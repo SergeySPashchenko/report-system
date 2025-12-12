@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Brand;
+use App\Models\Company;
+use App\Models\User;
 use App\Queries\BrandQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -20,16 +22,24 @@ final readonly class BrandService
      * @return LengthAwarePaginator<int, Brand>
      */
     public function getPaginatedBrands(
+        User $user,
         ?string $search = null,
         ?string $sortBy = null,
         ?string $sortDirection = 'asc',
         int $perPage = 15
     ): LengthAwarePaginator {
-        return $this->brandQuery
+        $query = $this->brandQuery
             ->reset()
             ->search($search)
-            ->sort($sortBy, $sortDirection ?? 'asc')
-            ->paginate($perPage);
+            ->sort($sortBy, $sortDirection ?? 'asc');
+
+        // Фільтруємо за доступом користувача
+        if (! $user->company() instanceof Company && $user->brands()->exists()) {
+            $brandIds = $user->brands()->pluck('id')->toArray();
+            $query->getQuery()->whereIn('id', $brandIds);
+        }
+
+        return $query->paginate($perPage);
     }
 
     /**
@@ -109,14 +119,22 @@ final readonly class BrandService
      *
      * @return array<string, int>
      */
-    public function getStatistics(): array
+    public function getStatistics(User $user): array
     {
+        $baseQuery = Brand::query();
+
+        // Фільтруємо за доступом користувача
+        if (! $user->company() instanceof Company && $user->brands()->exists()) {
+            $brandIds = $user->brands()->pluck('id')->toArray();
+            $baseQuery->whereIn('id', $brandIds);
+        }
+
         return [
-            'total' => Brand::query()->count(),
-            'deleted' => Brand::onlyTrashed()->count(),
-            'created_today' => Brand::query()->whereDate('created_at', today())->count(),
-            'created_this_week' => Brand::query()->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-            'created_this_month' => Brand::query()->whereMonth('created_at', now()->month)->count(),
+            'total' => (clone $baseQuery)->count(),
+            'deleted' => (clone $baseQuery)->onlyTrashed()->count(),
+            'created_today' => (clone $baseQuery)->whereDate('created_at', today())->count(),
+            'created_this_week' => (clone $baseQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'created_this_month' => (clone $baseQuery)->whereMonth('created_at', now()->month)->count(),
         ];
     }
 }

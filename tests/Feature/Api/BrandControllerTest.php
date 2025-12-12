@@ -113,6 +113,9 @@ final class BrandControllerTest extends TestCase
         $otherBrand = Brand::factory()->create();
         $otherUser = User::factory()->create();
 
+        // Видаляємо доступ до компанії для користувача
+        $otherUser->accesses()->where('accessible_type', 'company')->delete();
+
         $response = $this->actingAs($otherUser, 'sanctum')
             ->putJson("/api/v1/brands/{$otherBrand->slug}", [
                 'name' => 'Hacked Name',
@@ -137,6 +140,9 @@ final class BrandControllerTest extends TestCase
     {
         $otherBrand = Brand::factory()->create();
         $otherUser = User::factory()->create();
+
+        // Видаляємо доступ до компанії для користувача
+        $otherUser->accesses()->where('accessible_type', 'company')->delete();
 
         $response = $this->actingAs($otherUser, 'sanctum')
             ->deleteJson("/api/v1/brands/{$otherBrand->slug}");
