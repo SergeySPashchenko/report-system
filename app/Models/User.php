@@ -116,6 +116,24 @@ final class User extends Authenticatable
     }
 
     /**
+     * Get all brands the user has access to.
+     *
+     * @return BelongsToMany<Brand, $this>
+     */
+    public function brands(): BelongsToMany
+    {
+        // Використовуємо ключ 'brand' з морф-мапи (визначено в AppServiceProvider)
+        return $this->belongsToMany(
+            Brand::class,
+            'accesses',
+            'user_id',
+            'accessible_id'
+        )->where('accesses.accessible_type', 'brand')
+            ->whereNull('accesses.deleted_at')
+            ->withTimestamps();
+    }
+
+    /**
      * Get team ID for the given model.
      */
     public function getTeamIdFor(Model $model): ?string
@@ -126,6 +144,7 @@ final class User extends Authenticatable
         // Визначаємо ключ з морф-мапи на основі класу моделі
         $modelMorphKey = match ($model::class) {
             Company::class => 'company',
+            Brand::class => 'brand',
             self::class => 'user',
             Access::class => 'access',
             default => $model::class,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\Access;
+use App\Models\Brand;
 use App\Models\Company;
 use App\Models\PersonalAccessToken;
 use App\Models\User;
@@ -35,6 +36,7 @@ final class AppServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'user' => User::class,
             'company' => Company::class,
+            'brand' => Brand::class,
             'access' => Access::class,
         ]);
         User::observe(UserObserver::class);
