@@ -10,6 +10,7 @@ use App\Models\Expense;
 use App\Models\Expensetype;
 use App\Models\Gender;
 use App\Models\Product;
+use App\Models\ProductItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -234,6 +235,23 @@ final class CategoryControllerTest extends TestCase
             ->assertJsonStructure([
                 'data' => [
                     '*' => ['id', 'ProductID', 'ExpenseID', 'ExpenseDate', 'Expense'],
+                ],
+            ]);
+    }
+
+    public function test_can_list_product_items_for_category(): void
+    {
+        ProductItem::factory()->count(3)->create([
+            'ProductID' => $this->product->ProductID,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v1/categories/{$this->category->slug}/product-items");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'ItemID', 'ProductID', 'ProductName', 'slug', 'SKU'],
                 ],
             ]);
     }

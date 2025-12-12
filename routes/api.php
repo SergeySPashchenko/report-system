@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\ExpensetypeController;
 use App\Http\Controllers\Api\GenderController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductItemController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +78,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
         Route::delete('{brand}/products/{product}', [BrandController::class, 'destroyProduct'])->name('products.destroy');
         // Nested expenses routes
         Route::get('{brand}/expenses', [BrandController::class, 'expenses'])->name('expenses.index');
+
+        // Nested product items routes
+        Route::get('{brand}/product-items', [BrandController::class, 'productItems'])->name('product-items.index');
     });
 
     // Brands API Resource
@@ -110,6 +114,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
         Route::delete('{category}/products/{product}', [CategoryController::class, 'destroyProduct'])->name('products.destroy');
         // Nested expenses routes
         Route::get('{category}/expenses', [CategoryController::class, 'expenses'])->name('expenses.index');
+
+        // Nested product items routes
+        Route::get('{category}/product-items', [CategoryController::class, 'productItems'])->name('product-items.index');
     });
 
     // Categories API Resource
@@ -131,6 +138,9 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
         Route::delete('{gender}/products/{product}', [GenderController::class, 'destroyProduct'])->name('products.destroy');
         // Nested expenses routes
         Route::get('{gender}/expenses', [GenderController::class, 'expenses'])->name('expenses.index');
+
+        // Nested product items routes
+        Route::get('{gender}/product-items', [GenderController::class, 'productItems'])->name('product-items.index');
     });
 
     // Genders API Resource
@@ -175,5 +185,25 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
         Route::put('{product}/expenses/{expense}', [ExpenseController::class, 'updateProduct'])->name('expenses.update');
         Route::patch('{product}/expenses/{expense}', [ExpenseController::class, 'updateProduct'])->name('expenses.update');
         Route::delete('{product}/expenses/{expense}', [ExpenseController::class, 'destroyProduct'])->name('expenses.destroy');
+
+        // Nested product items routes for products
+        Route::get('{product}/product-items', [ProductItemController::class, 'products'])->name('product-items.index');
+        Route::post('{product}/product-items', [ProductItemController::class, 'storeProduct'])->name('product-items.store');
+        Route::get('{product}/product-items/{product_item}', [ProductItemController::class, 'product'])->name('product-items.show');
+        Route::put('{product}/product-items/{product_item}', [ProductItemController::class, 'updateProduct'])->name('product-items.update');
+        Route::patch('{product}/product-items/{product_item}', [ProductItemController::class, 'updateProduct'])->name('product-items.update');
+        Route::delete('{product}/product-items/{product_item}', [ProductItemController::class, 'destroyProduct'])->name('product-items.destroy');
     });
+
+    // Product Items API - statistics must be before apiResource to avoid route conflicts
+    Route::prefix('product-items')->name('product-items.')->group(function (): void {
+        Route::get('statistics', [ProductItemController::class, 'statistics'])->name('statistics');
+        Route::post('{id}/restore', [ProductItemController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [ProductItemController::class, 'forceDelete'])->name('force-delete');
+    });
+
+    // Product Items API Resource
+    Route::apiResource('product-items', ProductItemController::class)->parameters([
+        'product-items' => 'productItem',
+    ]);
 });

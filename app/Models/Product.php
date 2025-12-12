@@ -21,6 +21,7 @@ use Spatie\Sluggable\SlugOptions;
  * @property Category|null $main_category
  * @property Category|null $marketing_category
  * @property Gender|null $gender
+ * @property ProductItem|null $productItems
  */
 final class Product extends Model
 {
@@ -137,5 +138,13 @@ final class Product extends Model
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class, 'ProductID', 'ProductID');
+    }
+
+    /**
+     * @return HasMany<ProductItem, $this>
+     */
+    public function productItems()
+    {
+        return $this->hasMany(ProductItem::class, 'ProductID', 'ProductID');
     }
 }

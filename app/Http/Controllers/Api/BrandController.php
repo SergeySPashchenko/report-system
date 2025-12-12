@@ -13,12 +13,14 @@ use App\Http\Resources\BrandCollection;
 use App\Http\Resources\BrandResource;
 use App\Http\Resources\ExpenseCollection;
 use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductItemCollection;
 use App\Http\Resources\ProductResource;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\BrandService;
 use App\Services\ExpenseService;
+use App\Services\ProductItemService;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,7 +31,8 @@ final class BrandController extends Controller
     public function __construct(
         private readonly BrandService $brandService,
         private readonly ProductService $productService,
-        private readonly ExpenseService $expenseService
+        private readonly ExpenseService $expenseService,
+        private readonly ProductItemService $productItemService
     ) {}
 
     /**
@@ -268,5 +271,36 @@ final class BrandController extends Controller
         );
 
         return new ExpenseCollection($expenses);
+    }
+
+    /**
+     * Get all product items for a specific brand.
+     */
+    public function productItems(Request $request, Brand $brand): ProductItemCollection
+    {
+        $this->authorize('view', $brand);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $search = $request->input('search');
+        $sortBy = $request->input('sort_by');
+        $sortDirection = $request->input('sort_direction');
+        $active = $request->input('active');
+        $deleted = $request->input('deleted');
+        $perPage = $request->input('per_page');
+
+        $productItems = $this->productItemService->getPaginatedProductItemsForBrand(
+            user: $user,
+            brandId: (string) $brand->id,
+            search: is_string($search) && $search !== '' ? $search : null,
+            sortBy: is_string($sortBy) && $sortBy !== '' ? $sortBy : null,
+            sortDirection: is_string($sortDirection) && $sortDirection !== '' ? $sortDirection : 'asc',
+            active: $active !== null ? filter_var($active, FILTER_VALIDATE_BOOLEAN) : null,
+            deleted: $deleted !== null ? filter_var($deleted, FILTER_VALIDATE_BOOLEAN) : null,
+            perPage: is_numeric($perPage) ? (int) $perPage : 15
+        );
+
+        return new ProductItemCollection($productItems);
     }
 }

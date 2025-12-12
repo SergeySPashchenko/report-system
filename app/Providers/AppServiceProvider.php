@@ -7,8 +7,11 @@ namespace App\Providers;
 use App\Models\Access;
 use App\Models\Brand;
 use App\Models\Company;
+use App\Models\Expense;
+use App\Models\Expensetype;
 use App\Models\PersonalAccessToken;
 use App\Models\Product;
+use App\Models\ProductItem;
 use App\Models\User;
 use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -40,6 +43,9 @@ final class AppServiceProvider extends ServiceProvider
             'brand' => Brand::class,
             'product' => Product::class,
             'access' => Access::class,
+            'productitem' => ProductItem::class,
+            'expense' => Expense::class,
+            'expensetype' => Expensetype::class,
         ]);
         User::observe(UserObserver::class);
 

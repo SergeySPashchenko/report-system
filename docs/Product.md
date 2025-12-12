@@ -219,6 +219,8 @@ $products = $query
 - `gender()` - BelongsTo Gender
 - `accesses()` - MorphMany Access
 - `users()` - BelongsToMany User (through Access)
+- `expenses()` - HasMany Expense
+- `productItems()` - HasMany ProductItem
 
 ---
 

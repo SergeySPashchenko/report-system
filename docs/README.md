@@ -49,6 +49,33 @@
 - Приклади використання
 - Тестування
 
+### [Product Item API Documentation](./ProductItem.md)
+Повна документація API для управління product items:
+- Структура проекту
+- Система доступу з підтримкою різних рівнів доступу
+- Синхронізація з зовнішньою базою даних
+- Nested routes під products
+- Приклади використання
+- Тестування
+
+### [Expense API Documentation](./Expense.md)
+Повна документація API для управління expenses:
+- Структура проекту
+- Система доступу з підтримкою різних рівнів доступу
+- Синхронізація з зовнішньою базою даних
+- Nested routes під products, brands, categories, genders, expensetypes
+- Приклади використання
+- Тестування
+
+### [Expensetype API Documentation](./Expensetype.md)
+Повна документація API для управління expensetypes:
+- Структура проекту
+- Публічний доступ для всіх користувачів
+- Синхронізація з зовнішньою базою даних
+- Nested routes під expensetypes
+- Приклади використання
+- Тестування
+
 ---
 
 ## 🎯 Реалізований Функціонал
@@ -246,6 +273,75 @@
 - `DELETE /api/v1/genders/{id}/force` - Остаточне видалення
 - `GET /api/v1/genders/statistics` - Статистика гендерів
 
+### Product Items
+- `GET /api/v1/product-items` - Список product items (фільтрований за доступом)
+- `POST /api/v1/product-items` - Створення product item
+- `GET /api/v1/product-items/{slug}` - Отримання product item
+- `PUT/PATCH /api/v1/product-items/{slug}` - Оновлення product item
+- `DELETE /api/v1/product-items/{slug}` - Видалення product item
+- `POST /api/v1/product-items/{id}/restore` - Відновлення product item
+- `DELETE /api/v1/product-items/{id}/force` - Остаточне видалення
+- `GET /api/v1/product-items/statistics` - Статистика product items (фільтрована за доступом)
+
+#### Nested Routes під Products
+- `GET /api/v1/products/{product}/product-items` - Список product items для продукту
+- `POST /api/v1/products/{product}/product-items` - Створення product item для продукту
+- `GET /api/v1/products/{product}/product-items/{product_item}` - Отримання product item для продукту
+- `PUT/PATCH /api/v1/products/{product}/product-items/{product_item}` - Оновлення product item для продукту
+- `DELETE /api/v1/products/{product}/product-items/{product_item}` - Видалення product item для продукту
+
+#### Nested Routes під Brands
+- `GET /api/v1/brands/{brand}/product-items` - Список product items для бренду
+
+#### Nested Routes під Categories
+- `GET /api/v1/categories/{category}/product-items` - Список product items для категорії
+
+#### Nested Routes під Genders
+- `GET /api/v1/genders/{gender}/product-items` - Список product items для гендеру
+
+### Expenses
+- `GET /api/v1/expenses` - Список expenses (фільтрований за доступом)
+- `POST /api/v1/expenses` - Створення expense
+- `GET /api/v1/expenses/{id}` - Отримання expense
+- `PUT/PATCH /api/v1/expenses/{id}` - Оновлення expense
+- `DELETE /api/v1/expenses/{id}` - Видалення expense
+- `POST /api/v1/expenses/{id}/restore` - Відновлення expense
+- `DELETE /api/v1/expenses/{id}/force` - Остаточне видалення
+- `GET /api/v1/expenses/statistics` - Статистика expenses (фільтрована за доступом)
+
+#### Nested Routes під Products
+- `GET /api/v1/products/{product}/expenses` - Список expenses для продукту
+- `POST /api/v1/products/{product}/expenses` - Створення expense для продукту
+- `GET /api/v1/products/{product}/expenses/{expense}` - Отримання expense для продукту
+- `PUT/PATCH /api/v1/products/{product}/expenses/{expense}` - Оновлення expense для продукту
+- `DELETE /api/v1/products/{product}/expenses/{expense}` - Видалення expense для продукту
+
+#### Nested Routes під Brands
+- `GET /api/v1/brands/{brand}/expenses` - Список expenses для бренду
+
+#### Nested Routes під Categories
+- `GET /api/v1/categories/{category}/expenses` - Список expenses для категорії
+
+#### Nested Routes під Genders
+- `GET /api/v1/genders/{gender}/expenses` - Список expenses для гендеру
+
+#### Nested Routes під Expensetypes
+- `GET /api/v1/expensetypes/{expensetype}/expenses` - Список expenses для типу витрати
+- `POST /api/v1/expensetypes/{expensetype}/expenses` - Створення expense для типу витрати
+- `GET /api/v1/expensetypes/{expensetype}/expenses/{expense}` - Отримання expense для типу витрати
+- `PUT/PATCH /api/v1/expensetypes/{expensetype}/expenses/{expense}` - Оновлення expense для типу витрати
+- `DELETE /api/v1/expensetypes/{expensetype}/expenses/{expense}` - Видалення expense для типу витрати
+
+### Expensetypes
+- `GET /api/v1/expensetypes` - Список expensetypes (доступно всім)
+- `POST /api/v1/expensetypes` - Створення expensetype
+- `GET /api/v1/expensetypes/{slug}` - Отримання expensetype
+- `PUT/PATCH /api/v1/expensetypes/{slug}` - Оновлення expensetype
+- `DELETE /api/v1/expensetypes/{slug}` - Видалення expensetype
+- `POST /api/v1/expensetypes/{id}/restore` - Відновлення expensetype
+- `DELETE /api/v1/expensetypes/{id}/force` - Остаточне видалення
+- `GET /api/v1/expensetypes/statistics` - Статистика expensetypes
+
 ---
 
 ## 📋 Автоматичні Процеси
@@ -299,6 +395,21 @@
 ### Gender Policy
 - Всі авторизовані користувачі мають повний доступ до гендерів
 - Гендери є довідковою інформацією і доступні всім
+
+### ProductItem Policy
+- Користувач компанії має доступ до всіх product items
+- Користувач з доступами по продуктам бачить product items своїх продуктів
+- Користувач з доступами по брендам бачить product items продуктів своїх брендів
+- Всі операції фільтруються за рівнем доступу користувача
+
+### Expense Policy
+- Користувач компанії має доступ до всіх expenses
+- Користувач з доступами по продуктам бачить expenses своїх продуктів
+- Користувач з доступами по брендам бачить expenses продуктів своїх брендів
+- Всі операції фільтруються за рівнем доступу користувача
+
+### Expensetype Policy
+- Expensetypes є довідковою інформацією і доступні всім
 
 ---
 
