@@ -108,7 +108,7 @@ return [
     */
     'auth' => [
         // Enable authentication documentation
-        'enabled' => false,
+        'enabled' => true,
 
         // Supported: 'bearer', 'basic', 'api_key'
         'type' => 'bearer',
@@ -118,7 +118,7 @@ return [
 
         // Default values (use env vars for real values)
         'default' => [
-            'token' => '01kc7vkpg371pqvvma1pr1gmsh|Ay0K8wGDJFVFdKroTK4SU1DjF2opIIafNuJQ3U1R6c1baaf3',       // For bearer auth
+            'token' => '01kc7wqc6ezr33pae3vvke2637|AJmyrfMV4v3DYJ8xiI9KI31kmtn5P43emck3PBz6da9db75d',       // For bearer auth
             'username' => 'super-admin@example.com',      // For basic auth
             'password' => 'password',              // For basic auth
             'key_name' => 'X-API-KEY',             // For api_key auth
