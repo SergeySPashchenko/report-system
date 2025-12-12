@@ -9,6 +9,7 @@ use App\Http\Requests\StoreGenderProductRequest;
 use App\Http\Requests\StoreGenderRequest;
 use App\Http\Requests\UpdateGenderProductRequest;
 use App\Http\Requests\UpdateGenderRequest;
+use App\Http\Resources\ExpenseCollection;
 use App\Http\Resources\GenderCollection;
 use App\Http\Resources\GenderResource;
 use App\Http\Resources\ProductCollection;
@@ -16,6 +17,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Gender;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\ExpenseService;
 use App\Services\GenderService;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +28,8 @@ final class GenderController extends Controller
 {
     public function __construct(
         private readonly GenderService $genderService,
-        private readonly ProductService $productService
+        private readonly ProductService $productService,
+        private readonly ExpenseService $expenseService
     ) {}
 
     /**
@@ -229,5 +232,34 @@ final class GenderController extends Controller
         return response()->json([
             'message' => 'Product deleted successfully',
         ], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Get all expenses for the gender.
+     */
+    public function expenses(Request $request, Gender $gender): ExpenseCollection
+    {
+        $this->authorize('view', $gender);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $sortBy = $request->input('sort_by');
+        $sortDirection = $request->input('sort_direction');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $perPage = $request->input('per_page');
+
+        $expenses = $this->expenseService->getPaginatedExpensesForGender(
+            user: $user,
+            genderId: (string) $gender->id,
+            sortBy: is_string($sortBy) && $sortBy !== '' ? $sortBy : null,
+            sortDirection: is_string($sortDirection) && $sortDirection !== '' ? $sortDirection : 'asc',
+            startDate: is_string($startDate) && $startDate !== '' ? $startDate : null,
+            endDate: is_string($endDate) && $endDate !== '' ? $endDate : null,
+            perPage: is_numeric($perPage) ? (int) $perPage : 15
+        );
+
+        return new ExpenseCollection($expenses);
     }
 }

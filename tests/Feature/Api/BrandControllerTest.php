@@ -6,6 +6,9 @@ namespace Tests\Feature\Api;
 
 use App\Models\Access;
 use App\Models\Brand;
+use App\Models\Expense;
+use App\Models\Expensetype;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,12 +21,30 @@ final class BrandControllerTest extends TestCase
 
     private Brand $brand;
 
+    private Product $product;
+
+    private Expense $expense;
+
+    private Expensetype $expensetype;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->user = User::factory()->create();
         $this->brand = Brand::factory()->create(['name' => 'Test Brand']);
+        $this->product = Product::factory()->create([
+            'ProductID' => 12345,
+            'brand_id' => $this->brand->id,
+        ]);
+        $this->expensetype = Expensetype::factory()->create(['ExpenseTypeID' => 1]);
+
+        $this->expense = Expense::factory()->create([
+            'ProductID' => $this->product->ProductID,
+            'ExpenseID' => $this->expensetype->ExpenseTypeID,
+            'ExpenseDate' => '2022-07-02',
+            'Expense' => 100.50,
+        ]);
 
         // Create access for user to brand
         Access::factory()->create([
@@ -196,7 +217,7 @@ final class BrandControllerTest extends TestCase
                 'created_this_week',
                 'created_this_month',
             ])
-            ->assertJsonPath('total', 6) // 5 + 1 deleted (brand from setUp is not counted in total as it's soft deleted)
+            ->assertJsonPath('total', 7) // 5 new + 1 from setUp + 1 deleted
             ->assertJsonPath('deleted', 1);
     }
 

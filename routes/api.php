@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\ExpensetypeController;
 use App\Http\Controllers\Api\GenderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserController;
@@ -73,6 +75,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
         Route::put('{brand}/products/{product}', [BrandController::class, 'updateProduct'])->name('products.update');
         Route::patch('{brand}/products/{product}', [BrandController::class, 'updateProduct'])->name('products.update');
         Route::delete('{brand}/products/{product}', [BrandController::class, 'destroyProduct'])->name('products.destroy');
+        // Nested expenses routes
+        Route::get('{brand}/expenses', [BrandController::class, 'expenses'])->name('expenses.index');
     });
 
     // Brands API Resource
@@ -104,6 +108,8 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
         Route::put('{category}/products/{product}', [CategoryController::class, 'updateProduct'])->name('products.update');
         Route::patch('{category}/products/{product}', [CategoryController::class, 'updateProduct'])->name('products.update');
         Route::delete('{category}/products/{product}', [CategoryController::class, 'destroyProduct'])->name('products.destroy');
+        // Nested expenses routes
+        Route::get('{category}/expenses', [CategoryController::class, 'expenses'])->name('expenses.index');
     });
 
     // Categories API Resource
@@ -123,10 +129,51 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api', EnsureUserIsAct
         Route::put('{gender}/products/{product}', [GenderController::class, 'updateProduct'])->name('products.update');
         Route::patch('{gender}/products/{product}', [GenderController::class, 'updateProduct'])->name('products.update');
         Route::delete('{gender}/products/{product}', [GenderController::class, 'destroyProduct'])->name('products.destroy');
+        // Nested expenses routes
+        Route::get('{gender}/expenses', [GenderController::class, 'expenses'])->name('expenses.index');
     });
 
     // Genders API Resource
     Route::apiResource('genders', GenderController::class)->parameters([
         'genders' => 'gender:slug',
     ]);
+
+    // Expensetypes API - statistics must be before apiResource to avoid route conflicts
+    Route::prefix('expensetypes')->name('expensetypes.')->group(function (): void {
+        Route::get('statistics', [ExpensetypeController::class, 'statistics'])->name('statistics');
+        Route::post('{id}/restore', [ExpensetypeController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [ExpensetypeController::class, 'forceDelete'])->name('force-delete');
+        // Nested expenses routes
+        Route::get('{expensetype}/expenses', [ExpensetypeController::class, 'expenses'])->name('expenses.index');
+        Route::post('{expensetype}/expenses', [ExpensetypeController::class, 'storeExpense'])->name('expenses.store');
+        Route::get('{expensetype}/expenses/{expense}', [ExpensetypeController::class, 'expense'])->name('expenses.show');
+        Route::put('{expensetype}/expenses/{expense}', [ExpensetypeController::class, 'updateExpense'])->name('expenses.update');
+        Route::patch('{expensetype}/expenses/{expense}', [ExpensetypeController::class, 'updateExpense'])->name('expenses.update');
+        Route::delete('{expensetype}/expenses/{expense}', [ExpensetypeController::class, 'destroyExpense'])->name('expenses.destroy');
+    });
+
+    // Expensetypes API Resource
+    Route::apiResource('expensetypes', ExpensetypeController::class)->parameters([
+        'expensetypes' => 'expensetype:slug',
+    ]);
+
+    // Expenses API - statistics must be before apiResource to avoid route conflicts
+    Route::prefix('expenses')->name('expenses.')->group(function (): void {
+        Route::get('statistics', [ExpenseController::class, 'statistics'])->name('statistics');
+        Route::post('{id}/restore', [ExpenseController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [ExpenseController::class, 'forceDelete'])->name('force-delete');
+    });
+
+    // Expenses API Resource
+    Route::apiResource('expenses', ExpenseController::class);
+
+    // Nested expenses routes for products
+    Route::prefix('products')->name('products.')->group(function (): void {
+        Route::get('{product}/expenses', [ExpenseController::class, 'products'])->name('expenses.index');
+        Route::post('{product}/expenses', [ExpenseController::class, 'storeProduct'])->name('expenses.store');
+        Route::get('{product}/expenses/{expense}', [ExpenseController::class, 'product'])->name('expenses.show');
+        Route::put('{product}/expenses/{expense}', [ExpenseController::class, 'updateProduct'])->name('expenses.update');
+        Route::patch('{product}/expenses/{expense}', [ExpenseController::class, 'updateProduct'])->name('expenses.update');
+        Route::delete('{product}/expenses/{expense}', [ExpenseController::class, 'destroyProduct'])->name('expenses.destroy');
+    });
 });

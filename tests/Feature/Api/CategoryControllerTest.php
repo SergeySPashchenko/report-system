@@ -6,6 +6,8 @@ namespace Tests\Feature\Api;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Expense;
+use App\Models\Expensetype;
 use App\Models\Gender;
 use App\Models\Product;
 use App\Models\User;
@@ -20,12 +22,30 @@ final class CategoryControllerTest extends TestCase
 
     private Category $category;
 
+    private Product $product;
+
+    private Expense $expense;
+
+    private Expensetype $expensetype;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->user = User::factory()->create();
         $this->category = Category::factory()->create(['category_name' => 'Test Category']);
+        $this->product = Product::factory()->create([
+            'ProductID' => 12345,
+            'main_category_id' => $this->category->id,
+        ]);
+        $this->expensetype = Expensetype::factory()->create(['ExpenseTypeID' => 1]);
+
+        $this->expense = Expense::factory()->create([
+            'ProductID' => $this->product->ProductID,
+            'ExpenseID' => $this->expensetype->ExpenseTypeID,
+            'ExpenseDate' => '2022-07-02',
+            'Expense' => 100.50,
+        ]);
     }
 
     public function test_can_list_categories(): void
@@ -198,5 +218,23 @@ final class CategoryControllerTest extends TestCase
             ->getJson("/api/v1/categories/{$this->category->slug}/products/{$otherProduct->slug}");
 
         $response->assertStatus(404);
+    }
+
+    public function test_can_list_expenses_for_category(): void
+    {
+        Expense::factory()->count(3)->create([
+            'ProductID' => $this->product->ProductID,
+            'ExpenseID' => $this->expensetype->ExpenseTypeID,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v1/categories/{$this->category->slug}/expenses");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'ProductID', 'ExpenseID', 'ExpenseDate', 'Expense'],
+                ],
+            ]);
     }
 }

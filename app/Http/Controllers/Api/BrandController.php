@@ -11,12 +11,14 @@ use App\Http\Requests\UpdateBrandProductRequest;
 use App\Http\Requests\UpdateBrandRequest;
 use App\Http\Resources\BrandCollection;
 use App\Http\Resources\BrandResource;
+use App\Http\Resources\ExpenseCollection;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\BrandService;
+use App\Services\ExpenseService;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,7 +28,8 @@ final class BrandController extends Controller
 {
     public function __construct(
         private readonly BrandService $brandService,
-        private readonly ProductService $productService
+        private readonly ProductService $productService,
+        private readonly ExpenseService $expenseService
     ) {}
 
     /**
@@ -236,5 +239,34 @@ final class BrandController extends Controller
         return response()->json([
             'message' => 'Product deleted successfully',
         ], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Get all expenses for the brand.
+     */
+    public function expenses(Request $request, Brand $brand): ExpenseCollection
+    {
+        $this->authorize('view', $brand);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $sortBy = $request->input('sort_by');
+        $sortDirection = $request->input('sort_direction');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $perPage = $request->input('per_page');
+
+        $expenses = $this->expenseService->getPaginatedExpensesForBrand(
+            user: $user,
+            brandId: (string) $brand->id,
+            sortBy: is_string($sortBy) && $sortBy !== '' ? $sortBy : null,
+            sortDirection: is_string($sortDirection) && $sortDirection !== '' ? $sortDirection : 'asc',
+            startDate: is_string($startDate) && $startDate !== '' ? $startDate : null,
+            endDate: is_string($endDate) && $endDate !== '' ? $endDate : null,
+            perPage: is_numeric($perPage) ? (int) $perPage : 15
+        );
+
+        return new ExpenseCollection($expenses);
     }
 }
